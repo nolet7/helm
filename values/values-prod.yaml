@@ -1,18 +1,14 @@
-# Production environment values for Linkerd
-identity:
-  issuer:
-    scheme: kubernetes.io/tls
-    crtPEM: "{{ vault 'linkerd/prod' 'issuer_crt' }}"
-    keyPEM: "{{ vault 'linkerd/prod' 'issuer_key' }}"
-    caPEM: "{{ vault 'linkerd/prod' 'ca_crt' }}"
+trustAnchor: |
+  -----BEGIN CERTIFICATE-----
+  PROD_TRUST_CA
+  -----END CERTIFICATE-----
 
-controllerReplicas: 3
-enablePodAntiAffinity: true
-proxy:
-  resources:
-    requests:
-      cpu: 150m
-      memory: 256Mi
-    limits:
-      cpu: 600m
-      memory: 512Mi
+issuer:
+  crt: |
+    -----BEGIN CERTIFICATE-----
+    PROD_ISSUER_CERT
+    -----END CERTIFICATE-----
+  key: |
+    -----BEGIN PRIVATE KEY-----
+    PROD_ISSUER_KEY
+    -----END PRIVATE KEY-----

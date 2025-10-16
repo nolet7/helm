@@ -1,18 +1,14 @@
-# Staging environment values for Linkerd
-identity:
-  issuer:
-    scheme: kubernetes.io/tls
-    crtPEM: "{{ vault 'linkerd/stage' 'issuer_crt' }}"
-    keyPEM: "{{ vault 'linkerd/stage' 'issuer_key' }}"
-    caPEM: "{{ vault 'linkerd/stage' 'ca_crt' }}"
+trustAnchor: |
+  -----BEGIN CERTIFICATE-----
+  STAGE_TRUST_CA
+  -----END CERTIFICATE-----
 
-controllerReplicas: 2
-enablePodAntiAffinity: true
-proxy:
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 400m
-      memory: 256Mi
+issuer:
+  crt: |
+    -----BEGIN CERTIFICATE-----
+    STAGE_ISSUER_CERT
+    -----END CERTIFICATE-----
+  key: |
+    -----BEGIN PRIVATE KEY-----
+    STAGE_ISSUER_KEY
+    -----END PRIVATE KEY-----

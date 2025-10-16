@@ -1,17 +1,12 @@
-# Helm Values Repository
+# Linkerd Helm Configuration
 
-This repository contains environment-specific Helm values used by ArgoCD to deploy Linkerd.
+This repository holds the Helm chart and environment-specific values for Linkerd.
 
-## Structure
-values/
-├── values-dev.yaml
-├── values-stage.yaml
-└── values-prod.yaml
+### Structure
+templates/ → base chart templates (namespace, cert secrets)
+values/ → environment-specific values files (dev, stage, prod)
 
 
-Vault paths used for mTLS:
-- `linkerd/dev`
-- `linkerd/stage`
-- `linkerd/prod`
+Each environment value file defines its own trust anchor and issuer certs.
 
-Each contains `ca_crt`, `issuer_crt`, and `issuer_key`.
+Helm chart can be referenced by ArgoCD Applications in your linkerd-test GitOps repo.

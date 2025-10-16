@@ -1,18 +1,14 @@
-# Development environment values for Linkerd
-identity:
-  issuer:
-    scheme: kubernetes.io/tls
-    crtPEM: "{{ vault 'linkerd/dev' 'issuer_crt' }}"
-    keyPEM: "{{ vault 'linkerd/dev' 'issuer_key' }}"
-    caPEM: "{{ vault 'linkerd/dev' 'ca_crt' }}"
+trustAnchor: |
+  -----BEGIN CERTIFICATE-----
+  DEV_TRUST_CA
+  -----END CERTIFICATE-----
 
-controllerReplicas: 1
-enablePodAntiAffinity: false
-proxy:
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 128Mi
+issuer:
+  crt: |
+    -----BEGIN CERTIFICATE-----
+    DEV_ISSUER_CERT
+    -----END CERTIFICATE-----
+  key: |
+    -----BEGIN PRIVATE KEY-----
+    DEV_ISSUER_KEY
+    -----END PRIVATE KEY-----
