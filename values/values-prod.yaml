@@ -1,28 +1,38 @@
-installNamespace: true
-controllerReplicas: 3
-enablePodAntiAffinity: true
+# Linkerd Helm values for PROD environment
+namespace: linkerd-prod
 
 identity:
   issuer:
-    scheme: linkerd.io/tls
-    crtPEMFile: /home/nolet7/linkerd-certs/issuer.crt
-    keyPEMFile: /home/nolet7/linkerd-certs/issuer.key
-    crtExpiry: 720h
-  trustAnchorsFile: /home/nolet7/linkerd-certs/ca.crt
+    scheme: kubernetes.io/tls
+  externalCA: true
+  existingIssuerSecret: linkerd-identity-issuer
 
-global:
-  linkerdVersion: stable-2.13.3
-  identity:
-    issuer:
-      crtExpiry: 720h
-      renewBeforeExpiry: 168h
-  proxy:
-    logLevel: warn,linkerd=info
+controllerReplicas: 3
 
 resources:
   requests:
     cpu: 500m
-    memory: 512Mi
-  limits:
-    cpu: 1000m
     memory: 1Gi
+  limits:
+    cpu: 1
+    memory: 2Gi
+
+proxy:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 400m
+      memory: 512Mi
+
+enablePodInject: true
+
+nodeSelector:
+  env: prod
+
+metrics:
+  enableGrafana: true
+  enablePrometheus: true
+  enableJaeger: true
+

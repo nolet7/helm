@@ -1,28 +1,41 @@
-installNamespace: true
-controllerReplicas: 1
-enablePodAntiAffinity: false
+# Linkerd Helm values for DEV environment
+namespace: linkerd-dev
 
 identity:
   issuer:
-    scheme: linkerd.io/tls
-    crtPEMFile: /home/nolet7/linkerd-certs/issuer.crt
-    keyPEMFile: /home/nolet7/linkerd-certs/issuer.key
-    crtExpiry: 168h
-  trustAnchorsFile: /home/nolet7/linkerd-certs/ca.crt
+    scheme: kubernetes.io/tls
+  externalCA: true
+  existingIssuerSecret: linkerd-identity-issuer
 
-global:
-  linkerdVersion: stable-2.13.3
-  identity:
-    issuer:
-      crtExpiry: 168h
-      renewBeforeExpiry: 24h
-  proxy:
-    logLevel: debug,linkerd=debug
+controllerReplicas: 1
 
 resources:
   requests:
     cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 250m
     memory: 256Mi
+  limits:
+    cpu: 200m
+    memory: 512Mi
+
+proxy:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Enable automatic mTLS for all injected workloads
+enablePodInject: true
+
+# Add environment labels
+nodeSelector:
+  env: dev
+
+# Optional telemetry tweaks
+metrics:
+  enableGrafana: true
+  enablePrometheus: true
+  enableJaeger: false
+

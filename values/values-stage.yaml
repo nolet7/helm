@@ -1,28 +1,38 @@
-installNamespace: true
-controllerReplicas: 2
-enablePodAntiAffinity: true
+# Linkerd Helm values for STAGE environment
+namespace: linkerd-stage
 
 identity:
   issuer:
-    scheme: linkerd.io/tls
-    crtPEMFile: /home/nolet7/linkerd-certs/issuer.crt
-    keyPEMFile: /home/nolet7/linkerd-certs/issuer.key
-    crtExpiry: 336h
-  trustAnchorsFile: /home/nolet7/linkerd-certs/ca.crt
+    scheme: kubernetes.io/tls
+  externalCA: true
+  existingIssuerSecret: linkerd-identity-issuer
 
-global:
-  linkerdVersion: stable-2.13.3
-  identity:
-    issuer:
-      crtExpiry: 336h
-      renewBeforeExpiry: 72h
-  proxy:
-    logLevel: info,linkerd=debug
+controllerReplicas: 2
 
 resources:
   requests:
     cpu: 200m
-    memory: 256Mi
-  limits:
-    cpu: 500m
     memory: 512Mi
+  limits:
+    cpu: 400m
+    memory: 1Gi
+
+proxy:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+enablePodInject: true
+
+nodeSelector:
+  env: stage
+
+metrics:
+  enableGrafana: true
+  enablePrometheus: true
+  enableJaeger: false
+
