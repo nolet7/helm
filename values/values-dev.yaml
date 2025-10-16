@@ -1,14 +1,17 @@
-trustAnchor: |
-  -----BEGIN CERTIFICATE-----
-  DEV_TRUST_CA
-  -----END CERTIFICATE-----
+installNamespace: true
+enablePodAntiAffinity: false
 
-issuer:
-  crt: |
-    -----BEGIN CERTIFICATE-----
-    DEV_ISSUER_CERT
-    -----END CERTIFICATE-----
-  key: |
-    -----BEGIN PRIVATE KEY-----
-    DEV_ISSUER_KEY
-    -----END PRIVATE KEY-----
+identity:
+  issuer:
+    scheme: kubernetes.io/tls
+
+proxyInjector:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+controllerReplicas: 1

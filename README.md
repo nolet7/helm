@@ -1,12 +1,14 @@
-# Linkerd Helm Configuration
+# Linkerd Helm Environment Overrides
 
-This repository holds the Helm chart and environment-specific values for Linkerd.
+This repository provides environment-specific customization values for Linkerd Helm installation.
 
-### Structure
-templates/ → base chart templates (namespace, cert secrets)
-values/ → environment-specific values files (dev, stage, prod)
+It is referenced by the Argo CD applications defined in the `linkerd-test` GitOps repo.
+
+## Structure
+values/
+├── values-dev.yaml
+├── values-stage.yaml
+└── values-prod.yaml
 
 
-Each environment value file defines its own trust anchor and issuer certs.
-
-Helm chart can be referenced by ArgoCD Applications in your linkerd-test GitOps repo.
+Each environment YAML file overrides parameters like resource limits, identity configuration, and HA settings.
