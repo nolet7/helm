@@ -1,46 +1,28 @@
-# helm/values/values-dev.yaml
 installNamespace: true
-
 controllerReplicas: 1
 enablePodAntiAffinity: false
 
 identity:
   issuer:
     scheme: linkerd.io/tls
-    crtPEM: |
-      -----BEGIN CERTIFICATE-----
-      # (Optional: test cluster CA cert)
-      -----END CERTIFICATE-----
-    keyPEM: |
-      -----BEGIN RSA PRIVATE KEY-----
-      # (Optional: test cluster key)
-      -----END RSA PRIVATE KEY-----
-  trustAnchorsPEM: |
-    -----BEGIN CERTIFICATE-----
-    # (Optional: root trust anchor)
-    -----END CERTIFICATE-----
-
-proxy:
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 100m
-      memory: 128Mi
-  logLevel: info
-  trace:
-    collector:
-      enabled: false
+    crtPEMFile: /home/nolet7/linkerd-certs/issuer.crt
+    keyPEMFile: /home/nolet7/linkerd-certs/issuer.key
+    crtExpiry: 168h
+  trustAnchorsFile: /home/nolet7/linkerd-certs/ca.crt
 
 global:
   linkerdVersion: stable-2.13.3
+  identity:
+    issuer:
+      crtExpiry: 168h
+      renewBeforeExpiry: 24h
   proxy:
-    logLevel: warn,linkerd=info
+    logLevel: debug,linkerd=debug
 
-metrics:
-  enabled: true
-  prometheus:
-    enabled: true
-    port: 4191
-
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
