@@ -1,11 +1,26 @@
+# helm/values/values-stage.yaml
 installNamespace: true
+
+controllerReplicas: 2
 enablePodAntiAffinity: true
 
 identity:
   issuer:
-    scheme: kubernetes.io/tls
+    scheme: linkerd.io/tls
+    crtPEM: |
+      -----BEGIN CERTIFICATE-----
+      # staging issuer cert
+      -----END CERTIFICATE-----
+    keyPEM: |
+      -----BEGIN RSA PRIVATE KEY-----
+      # staging issuer key
+      -----END RSA PRIVATE KEY-----
+  trustAnchorsPEM: |
+    -----BEGIN CERTIFICATE-----
+    # staging trust anchor
+    -----END CERTIFICATE-----
 
-proxyInjector:
+proxy:
   resources:
     requests:
       cpu: 100m
@@ -13,5 +28,23 @@ proxyInjector:
     limits:
       cpu: 200m
       memory: 256Mi
+  logLevel: debug
+  trace:
+    collector:
+      enabled: true
+      addr: opentelemetry-collector.monitoring:4317
 
-controllerReplicas: 2
+global:
+  linkerdVersion: stable-2.13.3
+  proxy:
+    logLevel: info,linkerd=debug
+
+metrics:
+  enabled: true
+  prometheus:
+    enabled: true
+    port: 4191
+
+nodeSelector:
+  environment: stage
+
