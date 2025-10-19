@@ -1,61 +1,21 @@
-# ==========================================================
-# LINKERD PROD VALUES
-# ==========================================================
-
 global:
   clusterDomain: cluster.local
-  proxy:
-    logLevel: warn,linkerd=info
-    resources:
-      requests:
-        cpu: 200m
-        memory: 256Mi
-      limits:
-        cpu: 500m
-        memory: 512Mi
+  identityTrustAnchorsPEM: |
+    <path:kv/data/linkerd-prod/root-ca#pem>
 
 identity:
   externalCA: true
   issuer:
     scheme: kubernetes.io/tls
-    certFile: /vault/secrets/issuer.crt
-    keyFile: /vault/secrets/issuer.key
 
-vault:
-  enabled: true
-  address: "http://48.217.51.59:8200"
-  role: "linkerd-prod"
-  authPath: "auth/kubernetes"
-  pkiPath: "pki_int/issue/linkerd-prod"
-  mountPath: "/vault/secrets"
+proxy:
+  logLevel: warn,linkerd=info
+  resources:
+    requests: { cpu: 200m, memory: 192Mi }
+    limits:   { cpu: 400m, memory: 256Mi }
 
 controllerReplicas: 3
-
-metrics:
-  enabled: true
-  scrapeInterval: 30s
-  retentionTime: 24h
-
 proxyInjector:
   replicas: 3
-  resources:
-    requests:
-      cpu: 200m
-      memory: 128Mi
-    limits:
-      cpu: 400m
-      memory: 256Mi
-
 policyController:
-  enabled: true
-
-grafana:
-  enabled: true
-
-prometheus:
-  enabled: true
-
-tap:
-  enabled: true
-tapInjector:
   enabled: true
