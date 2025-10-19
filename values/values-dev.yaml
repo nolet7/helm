@@ -1,28 +1,28 @@
 # ==========================================================
-# Linkerd Control Plane Helm Values - Development Environment
-# Managed via Argo CD + Kustomize
-# External Repo: WEBFORX/helm-charts (feature/531-team-panthers-linkerd-helm)
+# LINKERD DEV VALUES
 # ==========================================================
 
-# ----------------------------------------------------------
-# Namespace & Installation
-# ----------------------------------------------------------
-installNamespace: false
-enablePodAntiAffinity: true
-enableEndpointSlices: true
-autoInject: true
+global:
+  clusterDomain: cluster.local
+  proxy:
+    logLevel: debug
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+  identityTrustAnchorsPEM: |
+    {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.trust_anchor_crt }}{{- end }}
 
-# ----------------------------------------------------------
-# Identity and mTLS (Option B - Auto-generated certs)
-# ----------------------------------------------------------
-identityTrustAnchorsPEM: ""
 identity:
   issuer:
     scheme: kubernetes.io/tls
-  clockSkewAllowance: "20s"
-  issuerLifetime: "24h"
-  # cert-manager can be integrated later if needed
-  certManager: false
+    crtPEM: |
+      {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.issuer_crt }}{{- end }}
+    keyPEM: |
+      {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.issuer_key }}{{- end }}
 
 # ----------------------------------------------------------
 # Proxy Configuration
@@ -31,7 +31,7 @@ proxy:
   image:
     name: cr.l5d.io/linkerd/proxy
     version: stable-2.14.10
-  logLevel: warn,linkerd=info
+  logLevel: debug,linkerd=info
   resources:
     requests:
       cpu: 100m
@@ -39,26 +39,17 @@ proxy:
     limits:
       cpu: 300m
       memory: 256Mi
-  livenessProbe:
-    periodSeconds: 10
-    failureThreshold: 3
-  readinessProbe:
-    periodSeconds: 5
-    failureThreshold: 3
-  lifecycle:
-    postStartSleepSeconds: 2
 
 # ----------------------------------------------------------
 # Controller Plane Configuration
 # ----------------------------------------------------------
-controllerReplicas: 2
-
+controllerReplicas: 1
 controllerResources:
   requests:
     cpu: 200m
     memory: 256Mi
   limits:
-    cpu: 500m
+    cpu: 400m
     memory: 512Mi
 
 # ----------------------------------------------------------
@@ -81,9 +72,10 @@ identityResources:
     memory: 256Mi
 
 # ----------------------------------------------------------
-# Proxy Injector & Tap Injector
+# Proxy Injector & Policy Controller
 # ----------------------------------------------------------
 proxyInjector:
+  replicas: 1
   resources:
     requests:
       cpu: 100m
@@ -91,111 +83,26 @@ proxyInjector:
     limits:
       cpu: 300m
       memory: 200Mi
-  replicas: 1
 
 policyController:
   enabled: true
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 300m
-      memory: 256Mi
-
-tap:
-  enabled: true
-  resources:
-    requests:
-      cpu: 150m
-      memory: 128Mi
-    limits:
-      cpu: 400m
-      memory: 256Mi
 
 # ----------------------------------------------------------
-# Telemetry & Metrics (integrated with Linkerd Viz)
+# Telemetry
 # ----------------------------------------------------------
 metrics:
   enabled: true
   scrapeInterval: 10s
-  retentionTime: 2h
+  retentionTime: 1h
 
 # ----------------------------------------------------------
-# Control Plane Tuning
-# ----------------------------------------------------------
-heartbeatSchedule: "*/5 * * * *"
-heartbeatResources:
-  requests:
-    cpu: 50m
-    memory: 50Mi
-
-# ----------------------------------------------------------
-# HA / Node Affinity
-# ----------------------------------------------------------
-highAvailability:
-  enabled: true
-  replicas: 2
-  antiAffinity: soft
-
-# ----------------------------------------------------------
-# Logging
-# ----------------------------------------------------------
-logLevel: warn,linkerd=info
-
-# ----------------------------------------------------------
-# Tracing (optional)
-# ----------------------------------------------------------
-tracing:
-  enabled: false
-  collector:
-    resources:
-      requests:
-        cpu: 50m
-        memory: 64Mi
-
-# ----------------------------------------------------------
-# Addons for Viz Integration
+# Viz Addons
 # ----------------------------------------------------------
 grafana:
   enabled: true
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 300m
-      memory: 256Mi
-
 prometheus:
   enabled: true
-  retention: 6h
-  scrapeInterval: 10s
-  resources:
-    requests:
-      cpu: 200m
-      memory: 256Mi
-    limits:
-      cpu: 600m
-      memory: 512Mi
-
+tap:
+  enabled: true
 tapInjector:
   enabled: true
-
-# ----------------------------------------------------------
-# Resource Defaults (Catch-all)
-# ----------------------------------------------------------
-global:
-  clusterDomain: cluster.local
-  proxy:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 300m
-        memory: 256Mi
-
-# ==========================================================
-# END OF FILE
-# ==========================================================
