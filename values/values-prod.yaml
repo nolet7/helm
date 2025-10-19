@@ -1,5 +1,5 @@
 # ==========================================================
-# Linkerd Control Plane Helm Values - Staging Environment
+# Linkerd Control Plane Helm Values - Production Environment
 # Managed via Argo CD + Kustomize
 # ==========================================================
 
@@ -14,7 +14,7 @@ identity:
   issuer:
     scheme: kubernetes.io/tls
   clockSkewAllowance: "30s"
-  issuerLifetime: "48h"
+  issuerLifetime: "72h"
   certManager: false
 
 # -------------------------- Proxy -------------------------
@@ -25,64 +25,44 @@ proxy:
   logLevel: warn,linkerd=info
   resources:
     requests:
-      cpu: 200m
-      memory: 256Mi
-    limits:
-      cpu: 600m
+      cpu: 300m
       memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
   livenessProbe:
     periodSeconds: 10
   readinessProbe:
     periodSeconds: 5
 
 # ----------------------- Controllers -----------------------
-controllerReplicas: 2
+controllerReplicas: 3
 controllerResources:
   requests:
-    cpu: 250m
-    memory: 300Mi
+    cpu: 300m
+    memory: 400Mi
+  limits:
+    cpu: 1
+    memory: 1Gi
+
+destinationControllerResources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
   limits:
     cpu: 600m
     memory: 512Mi
 
-destinationControllerResources:
-  requests:
-    cpu: 150m
-    memory: 200Mi
-  limits:
-    cpu: 500m
-    memory: 400Mi
-
 identityResources:
   requests:
-    cpu: 150m
-    memory: 200Mi
+    cpu: 200m
+    memory: 256Mi
   limits:
-    cpu: 500m
-    memory: 400Mi
+    cpu: 600m
+    memory: 512Mi
 
 proxyInjector:
-  replicas: 1
-  resources:
-    requests:
-      cpu: 150m
-      memory: 150Mi
-    limits:
-      cpu: 400m
-      memory: 256Mi
-
-policyController:
-  enabled: true
-  resources:
-    requests:
-      cpu: 150m
-      memory: 200Mi
-    limits:
-      cpu: 400m
-      memory: 400Mi
-
-tap:
-  enabled: true
+  replicas: 2
   resources:
     requests:
       cpu: 200m
@@ -91,26 +71,18 @@ tap:
       cpu: 500m
       memory: 400Mi
 
-# ---------------------- Telemetry --------------------------
-metrics:
-  enabled: true
-  scrapeInterval: 10s
-  retentionTime: 6h
-
-grafana:
+policyController:
   enabled: true
   resources:
     requests:
       cpu: 200m
       memory: 256Mi
     limits:
-      cpu: 400m
+      cpu: 600m
       memory: 512Mi
 
-prometheus:
+tap:
   enabled: true
-  retention: 12h
-  scrapeInterval: 10s
   resources:
     requests:
       cpu: 250m
@@ -119,11 +91,39 @@ prometheus:
       cpu: 600m
       memory: 512Mi
 
+# ---------------------- Telemetry --------------------------
+metrics:
+  enabled: true
+  scrapeInterval: 5s
+  retentionTime: 12h
+
+grafana:
+  enabled: true
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 600m
+      memory: 1Gi
+
+prometheus:
+  enabled: true
+  retention: 24h
+  scrapeInterval: 5s
+  resources:
+    requests:
+      cpu: 400m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
 # -------------------- High Availability -------------------
 highAvailability:
   enabled: true
-  replicas: 2
-  antiAffinity: soft
+  replicas: 3
+  antiAffinity: hard
 
 # ------------------------- Global -------------------------
 global:
@@ -131,8 +131,8 @@ global:
   proxy:
     resources:
       requests:
-        cpu: 200m
-        memory: 256Mi
-      limits:
-        cpu: 600m
+        cpu: 300m
         memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
