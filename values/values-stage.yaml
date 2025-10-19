@@ -1,126 +1,56 @@
 # ==========================================================
-# LINKERD STAGING VALUES
+# LINKERD STAGE VALUES
 # ==========================================================
 
 global:
   clusterDomain: cluster.local
   proxy:
     logLevel: info
-  identityTrustAnchorsPEM: |
-    {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.trust_anchor_crt }}{{- end }}
+    resources:
+      requests:
+        cpu: 150m
+        memory: 192Mi
+      limits:
+        cpu: 400m
+        memory: 384Mi
 
 identity:
+  externalCA: true
   issuer:
     scheme: kubernetes.io/tls
-    crtPEM: |
-      {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.issuer_crt }}{{- end }}
-    keyPEM: |
-      {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.issuer_key }}{{- end }}
+    certFile: /vault/secrets/issuer.crt
+    keyFile: /vault/secrets/issuer.key
 
-# ----------------------------------------------------------
-# Proxy Configuration
-# ----------------------------------------------------------
-proxy:
-  image:
-    name: cr.l5d.io/linkerd/proxy
-    version: stable-2.14.10
-  logLevel: info,linkerd=info
-  resources:
-    requests:
-      cpu: 150m
-      memory: 192Mi
-    limits:
-      cpu: 400m
-      memory: 256Mi
+vault:
+  enabled: true
+  address: "http://48.217.51.59:8200"
+  role: "linkerd-stage"
+  authPath: "auth/kubernetes"
+  pkiPath: "pki_int/issue/linkerd-stage"
+  mountPath: "/vault/secrets"
 
-# ----------------------------------------------------------
-# Controller Plane Configuration
-# ----------------------------------------------------------
 controllerReplicas: 2
-controllerResources:
-  requests:
-    cpu: 250m
-    memory: 256Mi
-  limits:
-    cpu: 500m
-    memory: 512Mi
 
-# ----------------------------------------------------------
-# Destination & Identity Services
-# ----------------------------------------------------------
-destinationControllerResources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 400m
-    memory: 256Mi
+metrics:
+  enabled: true
+  scrapeInterval: 15s
+  retentionTime: 6h
 
-identityResources:
-  requests:
-    cpu: 150m
-    memory: 128Mi
-  limits:
-    cpu: 400m
-    memory: 256Mi
-
-# ----------------------------------------------------------
-# Proxy Injector & Policy Controller
-# ----------------------------------------------------------
 proxyInjector:
   replicas: 2
   resources:
     requests:
       cpu: 150m
-      memory: 150Mi
+      memory: 128Mi
     limits:
       cpu: 400m
-      memory: 300Mi
+      memory: 256Mi
 
 policyController:
   enabled: true
-  resources:
-    requests:
-      cpu: 150m
-      memory: 128Mi
-    limits:
-      cpu: 400m
-      memory: 256Mi
 
-# ----------------------------------------------------------
-# Telemetry & Metrics
-# ----------------------------------------------------------
-metrics:
-  enabled: true
-  scrapeInterval: 10s
-  retentionTime: 3h
-
-# ----------------------------------------------------------
-# Viz Addons
-# ----------------------------------------------------------
 grafana:
   enabled: true
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 300m
-      memory: 256Mi
 
 prometheus:
   enabled: true
-  retention: 6h
-
-tap:
-  enabled: true
-tapInjector:
-  enabled: true
-
-# ----------------------------------------------------------
-# HA / Node Affinity
-# ----------------------------------------------------------
-highAvailability:
-  enabled: true
-  replicas: 2
-  antiAffinity: soft
