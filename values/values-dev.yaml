@@ -13,67 +13,29 @@ global:
       limits:
         cpu: 300m
         memory: 256Mi
-  identityTrustAnchorsPEM: |
-    {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.trust_anchor_crt }}{{- end }}
 
 identity:
+  externalCA: true
   issuer:
     scheme: kubernetes.io/tls
-    crtPEM: |
-      {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.issuer_crt }}{{- end }}
-    keyPEM: |
-      {{- with secret "secret/platform-tools/linkerd" -}}{{ .Data.data.issuer_key }}{{- end }}
+    certFile: /vault/secrets/issuer.crt
+    keyFile: /vault/secrets/issuer.key
 
-# ----------------------------------------------------------
-# Proxy Configuration
-# ----------------------------------------------------------
-proxy:
-  image:
-    name: cr.l5d.io/linkerd/proxy
-    version: stable-2.14.10
-  logLevel: debug,linkerd=info
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 300m
-      memory: 256Mi
+vault:
+  enabled: true
+  address: "http://48.217.51.59:8200"
+  role: "linkerd"
+  authPath: "auth/kubernetes"
+  pkiPath: "pki_int/issue/linkerd"
+  mountPath: "/vault/secrets"
 
-# ----------------------------------------------------------
-# Controller Plane Configuration
-# ----------------------------------------------------------
 controllerReplicas: 1
-controllerResources:
-  requests:
-    cpu: 200m
-    memory: 256Mi
-  limits:
-    cpu: 400m
-    memory: 512Mi
 
-# ----------------------------------------------------------
-# Destination & Identity Services
-# ----------------------------------------------------------
-destinationControllerResources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 400m
-    memory: 256Mi
+metrics:
+  enabled: true
+  scrapeInterval: 10s
+  retentionTime: 1h
 
-identityResources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 300m
-    memory: 256Mi
-
-# ----------------------------------------------------------
-# Proxy Injector & Policy Controller
-# ----------------------------------------------------------
 proxyInjector:
   replicas: 1
   resources:
@@ -87,22 +49,8 @@ proxyInjector:
 policyController:
   enabled: true
 
-# ----------------------------------------------------------
-# Telemetry
-# ----------------------------------------------------------
-metrics:
-  enabled: true
-  scrapeInterval: 10s
-  retentionTime: 1h
-
-# ----------------------------------------------------------
-# Viz Addons
-# ----------------------------------------------------------
 grafana:
   enabled: true
+
 prometheus:
-  enabled: true
-tap:
-  enabled: true
-tapInjector:
   enabled: true
