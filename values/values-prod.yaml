@@ -1,23 +1,104 @@
-# Linkerd Helm values for PROD environment
-namespace: linkerd-prod
+# ==========================================================
+# Linkerd Control Plane Helm Values - Staging Environment
+# Managed via Argo CD + Kustomize
+# ==========================================================
 
+installNamespace: false
+enablePodAntiAffinity: true
+enableEndpointSlices: true
+autoInject: true
+
+# ------------------------- Identity -----------------------
+identityTrustAnchorsPEM: ""
 identity:
   issuer:
     scheme: kubernetes.io/tls
-  externalCA: true
-  existingIssuerSecret: linkerd-identity-issuer
+  clockSkewAllowance: "30s"
+  issuerLifetime: "48h"
+  certManager: false
 
-controllerReplicas: 3
-
-resources:
-  requests:
-    cpu: 500m
-    memory: 1Gi
-  limits:
-    cpu: 1
-    memory: 2Gi
-
+# -------------------------- Proxy -------------------------
 proxy:
+  image:
+    name: cr.l5d.io/linkerd/proxy
+    version: stable-2.14.10
+  logLevel: warn,linkerd=info
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 600m
+      memory: 512Mi
+  livenessProbe:
+    periodSeconds: 10
+  readinessProbe:
+    periodSeconds: 5
+
+# ----------------------- Controllers -----------------------
+controllerReplicas: 2
+controllerResources:
+  requests:
+    cpu: 250m
+    memory: 300Mi
+  limits:
+    cpu: 600m
+    memory: 512Mi
+
+destinationControllerResources:
+  requests:
+    cpu: 150m
+    memory: 200Mi
+  limits:
+    cpu: 500m
+    memory: 400Mi
+
+identityResources:
+  requests:
+    cpu: 150m
+    memory: 200Mi
+  limits:
+    cpu: 500m
+    memory: 400Mi
+
+proxyInjector:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 150m
+      memory: 150Mi
+    limits:
+      cpu: 400m
+      memory: 256Mi
+
+policyController:
+  enabled: true
+  resources:
+    requests:
+      cpu: 150m
+      memory: 200Mi
+    limits:
+      cpu: 400m
+      memory: 400Mi
+
+tap:
+  enabled: true
+  resources:
+    requests:
+      cpu: 200m
+      memory: 200Mi
+    limits:
+      cpu: 500m
+      memory: 400Mi
+
+# ---------------------- Telemetry --------------------------
+metrics:
+  enabled: true
+  scrapeInterval: 10s
+  retentionTime: 6h
+
+grafana:
+  enabled: true
   resources:
     requests:
       cpu: 200m
@@ -26,13 +107,32 @@ proxy:
       cpu: 400m
       memory: 512Mi
 
-enablePodInject: true
+prometheus:
+  enabled: true
+  retention: 12h
+  scrapeInterval: 10s
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 600m
+      memory: 512Mi
 
-nodeSelector:
-  env: prod
+# -------------------- High Availability -------------------
+highAvailability:
+  enabled: true
+  replicas: 2
+  antiAffinity: soft
 
-metrics:
-  enableGrafana: true
-  enablePrometheus: true
-  enableJaeger: true
-
+# ------------------------- Global -------------------------
+global:
+  clusterDomain: cluster.local
+  proxy:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 600m
+        memory: 512Mi
